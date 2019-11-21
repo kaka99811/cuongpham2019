@@ -4,7 +4,7 @@ const courseSchema = new Schema({
     Name :{
         type: String
     },
-    Trainner :{
+    Trainer :{
         type : String
     },  
     FromDate :{
@@ -13,16 +13,26 @@ const courseSchema = new Schema({
     ToDate :{
         type : Date
     },
-    Room_ID : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : 'Rooms'
+    Room_Name : {
+        type : String
     },
+    Building_Name : {
+        type : String
+    },
+    // Room_ID : {
+    //     type : mongoose.Schema.Types.ObjectId,
+    //     ref : 'Rooms'
+    // },
+    // Building_ID : {
+    //     type : mongoose.Schema.Types.ObjectId,
+    //     ref : 'Building'
+    // },
     Class: [
         {
             Name : {
                 type : String
             },
-            Trainner : {
+            Trainer : {
                 type : String
             },
             Date : {
@@ -34,11 +44,18 @@ const courseSchema = new Schema({
             To_hours : {
                 type : String
             },
+            Code : {
+                type : String
+            },
             Room_ID : {
                 type : mongoose.Schema.Types.ObjectId,
-                ref: 'Building'
+                ref : 'Rooms'
             },
-            Code : {
+            Building_ID : {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'Building'
+            },
+            Wifi : {
                 type : String
             }
         }

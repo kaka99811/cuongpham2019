@@ -8,6 +8,8 @@ module.exports = function ValidateCourseInput(data){
     data.Trainer = !isEmty(data.Trainer) ? data.Trainer:'';
     data.FromDate = !isEmty(data.FromDate) ? data.FromDate:'';
     data.ToDate = !isEmty(data.ToDate) ? data.ToDate:'';
+    data.Room_ID = !isEmty(data.Room_ID) ? data.Room_ID:'';
+    data.Building_ID = !isEmty(data.Building_ID) ? data.Building_ID:''; 
 
     
 
@@ -29,6 +31,12 @@ module.exports = function ValidateCourseInput(data){
     if(Validator.isEmpty(data.ToDate)){
         errors.ToDate = 'không được bỏ trống';
     }
+    if(Validator.isEmpty(data.Building_ID)){
+        errors.Building_ID = 'Tên không được bỏ trống';
+    }
+    if(Validator.isEmpty(data.Room_ID)){
+        errors.Room_ID = 'Tên không được bỏ trống';
+    }        
 
     return {
         errors,

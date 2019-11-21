@@ -11,6 +11,8 @@ module.exports = function ValidateClassInput(data){
     data.To_hours = !isEmty(data.To_hours) ? data.To_hours:'';
     data.Code = !isEmty(data.Code)? data.Code:'';
     data.Room_ID = !isEmty(data.Room_ID) ? data.Room_ID:'';
+    data.Building_ID = !isEmty(data.Building_ID) ? data.Building_ID:'';
+    data.Wifi = !isEmty(data.Wifi) ? data.Wifi:'';
 
 
     if(!Validator.isLength(data.Name , {min : 5})){
@@ -34,12 +36,21 @@ module.exports = function ValidateClassInput(data){
     if(Validator.isEmpty(data.To_hours)){
         errors.To_hours = 'Giờ không được bỏ trống';
     }
-    if(!Validator.isLength(data.Code , {min : 4})){
-        errors.Code = 'Phải dài hơn 4 ký tự';
+    if(Validator.isEmpty(data.Room_ID)){
+        errors.Room_ID = 'ID không được bỏ trống';
     }
-    if(Validator.isEmpty(data.Code)){
-        errors.Code = 'không được bỏ trống';
+    if(Validator.isEmpty(data.Building_ID)){
+        errors.Building_ID = 'ID không được bỏ trống';
     }
+    // if(Validator.isEmpty(data.Wifi)){
+    //     errors.Wifi = 'Tên không được bỏ trống';
+    // }
+    // if(!Validator.isLength(data.Code , {min : 4})){
+    //     errors.Code = 'Phải dài hơn 4 ký tự';
+    // }
+    // if(Validator.isEmpty(data.Code)){
+    //     errors.Code = 'không được bỏ trống';
+    // }
 
     return {
         errors,

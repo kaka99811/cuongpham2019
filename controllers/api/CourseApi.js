@@ -27,7 +27,7 @@ router.get('/' , (req,res) => {
         data: 0
     }))
 });
-router.get('/class/:courseId' , (req,res) => {
+router.get('/class/courseId=:courseId' , (req,res) => {
     async function getClass(idCourse){
         if (!idCourse) {
             throw new MyError('Sai id', 400);
@@ -56,10 +56,11 @@ router.post('/create', (req,res) => {
     }
     const courseFields = {};
     if(req.body.Name) courseFields.Name = req.body.Name
-    if(req.body.Trainer) courseFields.Trainer = req.body.Trainner
+    if(req.body.Trainer) courseFields.Trainer = req.body.Trainer
     if(req.body.FromDate) courseFields.FromDate = req.body.FromDate
     if(req.body.ToDate) courseFields.ToDate = req.body.ToDate
-    if(req.body.Room_ID) courseFields.Room_ID = req.body.Room_ID
+    if(req.body.Room_Name) courseFields.Room_Name = req.body.Room_Name
+    if(req.body.Building_Name) courseFields.Building_Name = req.body.Building_Name
 
     Course.findOne({Name : req.body.Name})
         .then(course => {
@@ -82,7 +83,7 @@ router.post('/create', (req,res) => {
         });
 
 });
-router.post('/:courseId' , (req,res) => {
+router.post('/courseId=:courseId' , (req,res) => {
     const {errors, isValid} = validateCourseInput(req.body);
     // kiểm tra và báo lỗi
     if(!isValid){
@@ -93,7 +94,8 @@ router.post('/:courseId' , (req,res) => {
     if(req.body.Trainer) courseFields.Trainer = req.body.Trainer
     if(req.body.FromDate) courseFields.FromDate = req.body.FromDate
     if(req.body.ToDate) courseFields.ToDate = req.body.ToDate
-    if(req.body.Room_ID) courseFields.Room_ID = req.body.Room_ID
+    if(req.body.Room_Name) courseFields.Room_Name = req.body.Room_Name
+    if(req.body.Building_Name) courseFields.Building_Name = req.body.Building_Name
     Course.findOne({_id : req.params.courseId})
         .then(course => {
             if(!course){
@@ -113,7 +115,7 @@ router.post('/:courseId' , (req,res) => {
             }
         });        
 });
-router.post('/:courseId/addclass' , (req,res) => {
+router.post('/courseId=:courseId/addclass' , (req,res) => {
     async function createClass(idCourse, data){
         const course = await Course.findOne({_id: idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -124,8 +126,11 @@ router.post('/:courseId/addclass' , (req,res) => {
             From_hours : data.From_hours,
             To_hours : data.To_hours,
             Room_ID : data.Room_ID,
-            Code : data.Code,
+            Building_ID : data.Building_ID,
+            Code : Math.floor(1000 + Math.random() * 9000),
+            Wifi : data.Wifi,
         }
+        
         // add room to array
         course.Class.unshift(newClass);
         course.save();
@@ -146,7 +151,7 @@ router.post('/:courseId/addclass' , (req,res) => {
             data:0
         }));
 });
-router.post('/:courseId/addcomment' , (req,res) => {
+router.post('/courseId=:courseId/addcomment' , (req,res) => {
     async function createComment(idCourse, data){
         const course = await Course.findOne({_id: idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -184,7 +189,7 @@ router.post('/:courseId/addcomment' , (req,res) => {
             data : 0
         }));
 });
-router.post('/:courseId/addattendance' , (req,res) => {
+router.post('/courseId=:courseId/addattendance' , (req,res) => {
     async function createAttendance(idCourse, data){
         const course = await Course.findOne({_id: idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -215,7 +220,7 @@ router.post('/:courseId/addattendance' , (req,res) => {
             data: 0
         }));
 });
-router.delete('/:courseId/:classId' , (req,res) => {
+router.delete('/courseId=:courseId/:classId' , (req,res) => {
     async function deleteClass(idCourse, idClass){
         const course = await Course.findOne({_id : idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -241,7 +246,7 @@ router.delete('/:courseId/:classId' , (req,res) => {
         data: 0
     }));
 });
-router.delete('/:courseId/:commentId' , (req,res) => {
+router.delete('/courseId=:courseId/:commentId' , (req,res) => {
     async function deleteComment(idCourse, idComment){
         const course = await Course.findOne({_id : idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -267,7 +272,7 @@ router.delete('/:courseId/:commentId' , (req,res) => {
         data: 0
     }));
 });
-router.delete('/:courseId/:attendanceId' , (req,res) => {
+router.delete('/courseId=:courseId/:attendanceId' , (req,res) => {
     async function deleteAttendance(idCourse, idAttendance){
         const course = await Course.findOne({_id : idCourse});
         if(!course) throw new MyError('Course not found', 404);
@@ -293,7 +298,7 @@ router.delete('/:courseId/:attendanceId' , (req,res) => {
         data:0
     }));
 });
-router.delete('/:courseId', (req,res) => {
+router.delete('/courseId=:courseId', (req,res) => {
     Course.findByIdAndDelete(req.params.courseId)
     .then(Course => res.json({
         resultCode : 1,

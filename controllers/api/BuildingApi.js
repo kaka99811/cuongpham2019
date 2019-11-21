@@ -83,7 +83,7 @@ router.post('/:buildingId' , (req,res) => {
             }
         });
 });
-router.post('/:buildingId/addroom' , (req,res) => {
+router.post('/buildingId=:buildingId/addroom' , (req,res) => {
     async function createRoom(idBuilding, data){
         const building = await Building.findOne({_id: idBuilding});
         if(!building) throw new MyError('Building not found', 404);
@@ -111,7 +111,7 @@ router.post('/:buildingId/addroom' , (req,res) => {
             data: 0
         }));
 });
-router.delete('/:buildingId/:roomId', (req,res) => {
+router.delete('/buildingId=:buildingId/:roomId', (req,res) => {
     async function deleteRoom(idBuilding, idRoom){
         const building = await Building.findOne({_id: idBuilding});
         if(!building) throw new MyError('Building not found' , 404);
