@@ -13,40 +13,88 @@ const validateClassInput = require('../../validation/class');
 const validateCommentInput = require('../../validation/comment');
 const validateCourseInput = require('../../validation/course');
 
-router.get('/' , (req,res) => {
+router.get('/', async (req, res) => {
+    let result =[]
+    getRoomName = async (id) => {
+        const building = await Building.findOne(
+            { 'Rooms._id': { $eq: id } }
+        )
+        console.log(1, building.Rooms)
+        let room = building.Rooms.filter(room => room._id.toString() === id.toString())
+        return room[0].Name
+    }
+    // console.log(await getRoomName('5dcbd173eb210f3770d4aa63'));
     Course.find()
+    .populate('Building_ID',{Name:'Name'})
     .sort({_id : -1})
-    .then(courses => res.json({
+    .then(async courses => {
+        for (const course of courses) {
+            result.push({
+                _id: course._id,
+                Name: course.Name,
+                Trainer: course.Trainer,
+                FromDate: course.FromDate,
+                ToDate: course.ToDate,
+                Room_ID: course.Room_ID,
+                Room_Name: await getRoomName(course.Room_ID),
+                Building_ID: course.Building_ID
+            })
+        }
+        res.json({
         resultCode: 1,
         message: 'lay du lieu thanh cong',
-        data: courses
-    }))
-    .catch(err => res.json({
+        data: result
+    })})
+    .catch(err => {
+        console.log(err)
+        res.json({
         resultCode: -1,
         message: 'lay du lieu khong thanh cong',
         data: 0
-    }))
+    })})
 });
-router.get('/class/courseId=:courseId' , (req,res) => {
-    async function getClass(idCourse){
-        if (!idCourse) {
-            throw new MyError('Sai id', 400);
-        }
-        const {Class} = await Course.findById(idCourse, {Class : 1});
-        return {Class};
+router.get('/class/courseId=:courseId' , async (req,res) => {
+    let result =[]
+    getRoomName = async (id) => {
+        const building = await Building.findOne(
+            { 'Rooms._id': { $eq: id } }
+        )
+        console.log(1, building.Rooms)
+        let room = building.Rooms.filter(room => room._id.toString() === id.toString())
+        return room[0].Name
     }
-    getClass(req.params.courseId)
-    .then(Class => res.json({
+    // console.log(await getRoomName('5dcbd173eb210f3770d4aa63'));
+    Course.find()
+    // .populate('Building_ID',{Name:'Name'})
+    .sort({_id : -1})
+    .then(async classes => {
+        console.log(classes)
+        for (const data of classes) {
+            result.push({
+                Name: data.Name,
+                Trainer: data.Trainer,
+                Date : data.Date,
+                From_hours : data.From_hours,
+                To_hours : data.To_hours,
+                Room_ID: data.Room_ID,
+                Room_Name: await getRoomName(data.Room_ID),
+                Building_ID: data.Building_ID,
+                Code : data.Code,
+                classes : data.Class
+            })
+        }
+        res.json({
         resultCode: 1,
-        message: ' thành công ',
-        data: Class
-    }))
-    .catch(err => res.json({
-        resultCode: -1,
-        message: ' k thành công ',
-        data: 0
-    }))
-    
+        message: 'lay du lieu thanh cong',
+        data: result
+    })})
+    .catch(err => {
+        console.log(err)
+        res.json({
+            resultCode: -1,
+            message: ' k thành công ',
+            data: 0
+        })})    
 });
 router.post('/create', (req,res) => {
     const{errors , isValid} = validateCourseInput(req.body);
@@ -59,8 +107,8 @@ router.post('/create', (req,res) => {
     if(req.body.Trainer) courseFields.Trainer = req.body.Trainer
     if(req.body.FromDate) courseFields.FromDate = req.body.FromDate
     if(req.body.ToDate) courseFields.ToDate = req.body.ToDate
-    if(req.body.Room_Name) courseFields.Room_Name = req.body.Room_Name
-    if(req.body.Building_Name) courseFields.Building_Name = req.body.Building_Name
+    if(req.body.Room_ID) courseFields.Room_ID = req.body.Room_ID
+    if(req.body.Building_ID) courseFields.Building_ID = req.body.Building_ID
 
     Course.findOne({Name : req.body.Name})
         .then(course => {
@@ -128,7 +176,7 @@ router.post('/courseId=:courseId/addclass' , (req,res) => {
             Room_ID : data.Room_ID,
             Building_ID : data.Building_ID,
             Code : Math.floor(1000 + Math.random() * 9000),
-            Wifi : data.Wifi,
+            Wifi : data.Wifi
         }
         
         // add room to array

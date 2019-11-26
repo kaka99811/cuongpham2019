@@ -13,20 +13,20 @@ const courseSchema = new Schema({
     ToDate :{
         type : Date
     },
-    Room_Name : {
-        type : String
-    },
-    Building_Name : {
-        type : String
-    },
-    // Room_ID : {
-    //     type : mongoose.Schema.Types.ObjectId,
-    //     ref : 'Rooms'
+    // Room_Name : {
+    //     type : String
     // },
-    // Building_ID : {
-    //     type : mongoose.Schema.Types.ObjectId,
-    //     ref : 'Building'
+    // Building_Name : {
+    //     type : String
     // },
+    Room_ID : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'Rooms'
+    },
+    Building_ID : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'Building'
+    },
     Class: [
         {
             Name : {
@@ -55,6 +55,12 @@ const courseSchema = new Schema({
                 type : mongoose.Schema.Types.ObjectId,
                 ref : 'Building'
             },
+    //             Room_Name : {
+    //     type : String
+    // },
+    // Building_Name : {
+    //     type : String
+    // },
             Wifi : {
                 type : String
             }
