@@ -90,6 +90,7 @@ router.post('/buildingId=:buildingId/addroom' , (req,res) => {
         const newRoom = {
             Name : data.Name,
             Wifi : data.Wifi,
+            Ssid : data.Ssid,
         }
         // add room to array
         building.Rooms.unshift(newRoom);
@@ -110,6 +111,20 @@ router.post('/buildingId=:buildingId/addroom' , (req,res) => {
             message: err.message,
             data: 0
         }));
+});
+router.delete('/buildingId=:buildingId', (req,res) => {
+    Building.findByIdAndDelete(req.params.buildingId)
+    .then(Building => res.json({
+        resultCode : 1,
+        message:'Xóa thành công',
+        data: Building
+        }
+    ))
+    .catch(err => res.json({
+        resultCode: -1,
+        message: 'Xóa không thành công',
+        data: 0
+    }));
 });
 router.delete('/buildingId=:buildingId/:roomId', (req,res) => {
     async function deleteRoom(idBuilding, idRoom){

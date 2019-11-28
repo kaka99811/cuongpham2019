@@ -7,7 +7,10 @@ const roomSchema = new Schema({
             },
             Wifi : {
                 type : String
-            }    
+            },
+            Ssid : {
+                type : String
+            },    
 })
 const buildingSchema = new Schema({
     Name : {

@@ -14,7 +14,6 @@ module.exports = function ValidateClassInput(data){
     data.Building_ID = !isEmty(data.Building_ID) ? data.Building_ID:'';
     data.Wifi = !isEmty(data.Wifi) ? data.Wifi:'';
 
-
     if(!Validator.isLength(data.Name , {min : 5})){
         errors.Name = 'Phải Dài Hơn 5 Ký Tự';
     }
