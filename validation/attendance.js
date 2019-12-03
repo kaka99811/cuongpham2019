@@ -8,9 +8,9 @@ module.exports = function ValidateAttendanceInput(data){
     data.Date = !isEmty(data.Date) ? data.Date : '';
 
 
-    // if(Validator.isEmpty(data.UserId)){
-    //     errors.UserId = 'ID không được bỏ trống';
-    // }
+    if(Validator.isEmpty(data.UserId)){
+        errors.UserId = 'ID không được bỏ trống';
+    }
     if(Validator.isEmpty(data.Date)){
         errors.Date = 'không được bỏ trống';
     }

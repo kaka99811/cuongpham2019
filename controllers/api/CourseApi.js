@@ -130,6 +130,24 @@ router.get('/class/courseId=:courseId', async (req, res) => {
         })
 });
 router.post('/create', (req, res) => {
+    let result = []
+    getRoomName = async (id) => {
+        const building = await Building.findOne(
+            { 'Rooms._id': { $eq: id } }
+        )
+        console.log(1, building.Rooms)
+        let room = building.Rooms.filter(room => room._id.toString() === id.toString())
+        return room[0].Name
+    }
+    getBuildingName = async (id) => {
+        const building1 = await Building.findOne(
+            { '_id': { $eq: id } }
+        )
+        console.log(1, building1)
+        return building1.Name
+    }
+    // let today = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+    // let date = new Date()
     const { errors, isValid } = validateCourseInput(req.body);
     //kiem tra va bao loi
     if (!isValid) {
@@ -238,7 +256,7 @@ router.post('/courseId=:courseId/addcomment', (req, res) => {
         const course = await Course.findOne({ _id: idCourse });
         if (!course) throw new MyError('Course not found', 404);
         const newComment = {
-            UserId : data.UserId,
+            // UserId: data.UserId,
             Question_1: data.Question_1,
             Question_2: data.Question_2,
             Question_3: data.Question_3,
@@ -271,34 +289,85 @@ router.post('/courseId=:courseId/addcomment', (req, res) => {
             data: 0
         }));
 });
-router.post('/courseId=:courseId/:ClassId/addattendance', (req, res) => {
+router.post('/courseId=:courseId/classId=:ClassId/addattendance', (req, res) => {
     let date = new Date()
+    getBuildingName = async (id) => {
+        const building2 = await Building.findOne(
+            { '_id': id }
+        )
+        return building.Name
+    }
+
+    getRoomName = async (id) => {
+        const building2 = await Building.findOne(
+            { 'Rooms._id': { $eq: id } }
+        )
+        let room = building.Rooms.filter(room => room._id.toString() === id.toString())
+        return room[0].Name
+    }
+
+    getWifiName = async (roomId) => {
+        const building2 = await Building.findOne(
+            { 'Rooms._id': roomId }
+        )
+        let room = building.Rooms.filter(room => room._id.toString() === roomId.toString())
+        return room[0].Ssid
+    }
     async function createAttendance(idCourse, idClass, data) {
-        const course = await Course.findOne({ _id: idCourse,  })
-        if (!course) throw new MyError('Course not found', 404);
-
-        const coursee = await Course.findOne({_id: idClass})
-        if (!coursee) throw new MyError('Coursee not found', 404);
-
-        
         const newAttendance = {
+            Check_in: null,
+            Check_out: null,
             UserId: data.UserId,
             Date: data.Date
         }
-        // add room to array
-        coursee.Attendance.unshift(newAttendance);
-        course.save();
-        return newAttendance;
+        try {
+            const course = await Course.findOne({ _id: idCourse })
+            for (const classs of course.Class) {
+                if (classs._id.toString() === idClass.toString())
+                    await classs.Attendance.unshift(newAttendance)
+                course.save();
+                return classs.Attendance
+            }
+        }
+        catch (error) {
+            console.log(error)
+            res.json({
+                resultCode: -1,
+                message: 'That bai',
+                data: 0
+            })
+        }
     }
     const { errors, isValid } = validateAttendanceInput(req.body);
     if (!isValid) return res.status(400).json(errors);
 
-    createAttendance(req.params.courseId,req.params.ClassId, req.body)
-        .then(Attendance => res.send({
-            resultCode: 1,
-            message: 'Tạo mới thành công',
-            data: Attendance
-        }))
+    createAttendance(req.params.courseId, req.params.ClassId, req.body)
+        .then(Attendance =>
+            // console.log(attendancee)
+            // for (const attendance of attendancee.Attendance){
+            //     result.push({
+            //         Name : attendance.attendance,
+            //         Trainer: attendance.Trainer,
+            //         Date: attendance.Date,
+            //         From_hours: attendance.From_hours,
+            //         To_hours: attendance.To_hours,
+            //         Room_ID: attendance.Room_ID,
+            //         Room_Name: await getRoomName(attendance.Room_ID),
+            //         Building_ID: attendance.Building_ID,
+            //         Building_Name: await getBuildingName(attendance.Building_ID),
+            //         Wifi : attendance.Wifi,
+            //         Wifi_Name : await getWifiName(attendance.Room_ID),
+            //         attendancee: attendance.Attendance
+
+            //     })
+            // }
+
+            res.send({
+                resultCode: 1,
+                message: 'Tạo mới thành công',
+                data: Attendance
+            })
+        )
         .catch(err => res.json({
             resultCode: -1,
             message: err.message,
@@ -306,7 +375,7 @@ router.post('/courseId=:courseId/:ClassId/addattendance', (req, res) => {
         }));
 });
 router.post('/checkin', async (req, res) => {
-    let userId = '5dcb830a9c6c601284e073ad'
+    let userId = '5dcb85589c6c601284e073b0'
     let Ssid = req.header('Ssid')
     let date = new Date()
     let Wifi = req.header('Wifi')
@@ -318,7 +387,7 @@ router.post('/checkin', async (req, res) => {
                 'Rooms.Wifi': Wifi
             }
         )
-        if(checkWifi === null){
+        if (checkWifi === null) {
             return res.json({
                 resultCode: -1,
                 message: 'Bạn không thể checkin với kết nối wifi này',
@@ -331,54 +400,113 @@ router.post('/checkin', async (req, res) => {
             }
         }
         const Check_in = await Course.findOne({
-            'Class.Attendance.UserId' : userId,
+            'Class.Attendance.UserId': userId,
         })
-        if(Check_in.Class.filter(Attendance.filter(att => att.UserId.toString() === userId.toString()) != null)){
-            return res.json({
-                resultCode: -1,
-                message: 'Bạn đã checkin trong ngày hôm nay',
-                data: {
-                  Check_inTime: Check_in.Class.Attendance.Check_in.time
-                }
-            })
-        }
-        await Course.findOneAndUpdate(
-            {
-                'Attendance.Userid' : userId,
-            },
-            {
-                'Attendance.Check_in' : {
-                    time: new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString()
+        for (const classs of Check_in.Class) {
+            for (const att of classs.Attendance) {
+                if (att.UserId.toString() === userId.toString()) {
+                    if (att.Check_in.time != null) {
+                        return res.json({
+                            resultCode: -1,
+                            message: 'Bạn đã check in trong ngày hôm nay',
+                            data: {
+                                Check_inTime: att.Check_in.time
+                            }
+                        })
+                    }
+                    console.log(today)
+                    Object.assign(att.Check_in, { time: today });
+                    Check_in.save()
+                    return res.json({
+                        resultCode: 1,
+                        message: 'Thanh cong',
+                        data: {
+                            Check_inTime: att.Check_in.time
+                        }
+                    })
                 }
             }
-        )
-        const check = await Course.findOne({
-            UserId : userId
+        }
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            resultCode: -1,
+            message: 'Thất bại',
+            data: null,
+            error: error
         })
-        if (check !== null){
-            return res.json({
-                resultCode: 1,
-                message: 'Thành công',
-                data: {
-                  checkinTime: check.Class.Attendance.Check_in.time
-                }
-              })
-        } else {
-            return res.json({
-              resultCode: -1,
-              message: 'Thất bại',
-              data: null,
-            })
     }
-} catch (error){
-    console.log(error)
-    return res.json({
-      resultCode: -1,
-      message: 'Thất bại',
-      data: null,
-      error: error
-    })
-}});
+});
+router.post('/checkout', async (req, res) => {
+    let userId = '5dcb85589c6c601284e073b0'
+    let Ssid = req.header('Ssid')
+    let date = new Date()
+    let Wifi = req.header('Wifi')
+    let today = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+    let date2 = new Date()
+    let checkinTime = new Date((date.setHours(8, 40, 0)) - (date.getTimezoneOffset() * 60000))
+    try {
+        const checkWifi = await Building.findOne(
+            {
+                'Rooms.Ssid': Ssid,
+                'Rooms.Wifi': Wifi
+            }
+        )
+        if (checkWifi === null) {
+            return res.json({
+                resultCode: -1,
+                message: 'Bạn không thể checkout với kết nối wifi này',
+                data: null
+            })
+        }
+        for (const ip of 'checkWifi.Rooms.Wifi') {
+            if (ip === Wifi) {
+                location = `${Ssid}`
+            }
+        }
+        const Check_out = await Course.findOne({
+            'Class.Attendance.UserId': userId,
+        })
+        for (const classs of Check_out.Class) {
+            for (const att of classs.Attendance) {
+                if (att.UserId.toString() === userId.toString()) {
+                    // if(att.Check_out.time != null){
+                    //     return res.json({
+                    //         resultCode : -1,
+                    //         message: 'Bạn không thể check out trong ngày hôm nay ',
+                    //         data: null
+                    //     })
+                    // }
+                    if (att.Check_in.time === null) {
+                        return res.json({
+                            resultCode: -1,
+                            message: 'Bạn không thể check out trong ngày hôm nay vì bạn chưa check in',
+                            data: null
+                        })
+                    }
+                    console.log(today)
+                    Object.assign(att.Check_out, { time: today });
+                    Check_out.save()
+                    return res.json({
+                        resultCode: 1,
+                        message: 'Thanh cong',
+                        data: {
+                            Check_outTime: att.Check_out.time
+                        }
+                    })
+                }
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            resultCode: -1,
+            message: 'Thất bại',
+            data: null,
+            error: error
+        })
+    }
+});
 router.delete('/courseId=:courseId/:classId', (req, res) => {
     async function deleteClass(idCourse, idClass) {
         const course = await Course.findOne({ _id: idCourse });
@@ -496,8 +624,8 @@ router.get('/getStudentListByClass', async (req, res) => {
         for (const student of attendance) {
             result.push({
                 fullName: await getFullName(student.UserId),
-                checkinTime: student.Check_in,
-                checkoutTime: student.Check_out
+                checkinTime: student.Check_in.time,
+                checkoutTime: student.Check_out.time
             })
         }
 
@@ -521,6 +649,99 @@ router.get('/getStudentListByClass', async (req, res) => {
 router.get('/downloadStudentList', async (req, res) => {
     let queryParams = req.query
     let classId = queryParams.classId
+
+    try {
+        const course = await Course.findOne({
+            'Class._id': classId
+        })
+        let classs = course.Class.filter(data => data._id.toString() === classId.toString())
+        let attendance = classs[0].Attendance
+
+        getFullName = async (_id) => {
+            const account = await Account.findOne({
+                _id: _id
+            })
+            return account.fullName
+        }
+
+        convertDay = (date) => {
+            if (date === null) {
+                return ''
+            }
+            let day = new Date(date)
+            return `${day.getDate()}/${day.getMonth() + 1}/${day.getFullYear()}`
+        }
+        convertTime = (date1) => {
+            if (date1 === null) {
+                return ''
+            }
+            let date = new Date(date1)
+            let hour = date.getUTCHours()
+            let minutes = date.getMinutes()
+            let seconds = date.getSeconds()
+            if (hour < 10) {
+                hour = '0' + hour
+            }
+            if (minutes < 10) {
+                minutes = '0' + minutes
+            }
+            if ((seconds < 10)) {
+                seconds = '0' + seconds
+            }
+            return `${hour}:${minutes}:${seconds}`
+        }
+
+        let result = []
+
+        for (const student of attendance) {
+            result.push([
+                await getFullName(student.UserId),
+                `${convertDay(student.Check_in.time)} ${convertTime(student.Check_in.time)}`,
+                `${convertDay(student.Check_out.time)} ${convertTime(student.Check_out.time)}`
+            ])
+        }
+        let randomNumber = Math.floor(Math.random() * 10000) + 1
+        let name = classs[0].Name.replace(/\s/g, "_")
+        let randomName = Math.floor(Math.random() * 1000000000000000000000000000000000) + 1
+        let fileName = `${randomName}.pdf`
+
+
+        const fs = require('fs');
+        const PDFDocument = require('../pdfGenerate');
+        const doc = new PDFDocument();
+
+        let writeStream = fs.createWriteStream(`./pdfFile/${fileName}`)
+        doc.pipe(writeStream);
+
+        const table = {
+            headers: ['Name', 'Checkin', 'Checkout'],
+            rows: result
+        }
+
+        doc.table(table, {
+            prepareHeader: () => doc.font('Helvetica-Bold'),
+            prepareRow: (row, i) => doc.font('Helvetica').fontSize(12)
+        })
+        doc.end()
+        writeStream.on('finish', function () {
+            return res.json({
+                resultCode: 1,
+                message: 'Thành công',
+                data: {
+                    fileUrl: `http://10.86.224.37:1234/pdfFile/${fileName}`,
+                    fileName: name
+                }
+            })
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            resultCode: -1,
+            message: 'Thất bại',
+            data: null,
+            error: error
+        })
+    }
 
 })
 
@@ -553,24 +774,35 @@ router.get('/getClassByUser', async (req, res) => {
     }
 
     try {
+        if (userId === null || userId === '' || userId === undefined) {
+            return res.json({
+                resultCode: -1,
+                message: 'Thất bại',
+                data: null,
+            })
+        }
         const courses = await Course.find({
-            'Class.0.Attendance.UserId': userId
+            // Class: { $elemMatch: { Attendance: { $elemMatch: { UserId: userId } } } }
+            // 'Class.0.Attendance.UserId': userId
         })
         for (const course of courses) {
             for (const classs of course.Class) {
-                result.push({
-                    courseId: course._id,
-                    courseName: course.Name,
-                    classId: classs._id,
-                    className: classs.Name,
-                    trainer: classs.Trainer,
-                    date: classs.Date,
-                    startedTime: classs.From_hours,
-                    endedTime: classs.To_hours,
-                    building: await getBuildingName(classs.Building_ID),
-                    room: await getRoomName(classs.Room_ID),
-                    wifi: await getWifiName(classs.Room_ID)
-                })
+                let check = classs.Attendance.filter(data => data.UserId.toString() === userId.toString())
+                if (check.length > 0) {
+                    result.push({
+                        courseId: course._id,
+                        courseName: course.Name,
+                        classId: classs._id,
+                        className: classs.Name,
+                        trainer: classs.Trainer,
+                        date: classs.Date,
+                        startedTime: classs.From_hours,
+                        endedTime: classs.To_hours,
+                        building: await getBuildingName(classs.Building_ID),
+                        room: await getRoomName(classs.Room_ID),
+                        wifi: await getWifiName(classs.Room_ID)
+                    })
+                }
             }
         }
 
@@ -626,5 +858,79 @@ router.post('/sendClassCode', async (req, res) => {
 
 })
 
-module.exports = router;
+router.get('/getClassInfo', async (req, res) => {
+    let queryParams = req.query
+    let userId = req.header('userId')
+    let classId = queryParams.classId
+
+    if (userId === null || userId === undefined || classId === null || classId === undefined) {
+        res.json({
+            resultCode: -1,
+            message: 'Thất bại',
+            data: null
+        })
+    }
+
+    try {
+        getBuildingName = async (id) => {
+            const building = await Building.findOne(
+                { '_id': id }
+            )
+            return building.Name
+        }
+
+        getRoomName = async (id) => {
+            const building = await Building.findOne(
+                { 'Rooms._id': { $eq: id } }
+            )
+            let room = building.Rooms.filter(room => room._id.toString() === id.toString())
+            return room[0].Name
+        }
+
+        getWifiName = async (roomId) => {
+            const building = await Building.findOne(
+                { 'Rooms._id': roomId }
+            )
+            let room = building.Rooms.filter(room => room._id.toString() === roomId.toString())
+            return room[0].Ssid
+        }
+
+        const course = await Course.findOne({
+            'Class._id': classId
+        })
+
+        let classs = course.Class.filter(data => data._id.toString() === classId.toString())
+
+        let attendance = classs[0].Attendance.filter(data => data.UserId.toString() === userId.toString())
+
+        res.json({
+            resultCode: 1,
+            message: 'Thành công',
+            data: {
+                courseName: course.Name,
+                className: classs[0].Name,
+                date: classs[0].Date,
+                startedTime: classs[0].From_hours,
+                endedTime: classs[0].To_hours,
+                trainer: classs[0].Trainer,
+                building: await getBuildingName(classs[0].Building_ID),
+                room: await getRoomName(classs[0].Room_ID),
+                wifi: await getWifiName(classs[0].Room_ID),
+                checkinTime: attendance[0].Check_in.time,
+                checkoutTime: attendance[0].Check_out.time
+            }
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({
+            resultCode: -1,
+            message: 'Thất bại',
+            data: null,
+            error: error
+        })
+    }
+
+})
+
+module.exports = router
 

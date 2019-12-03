@@ -53,6 +53,7 @@ const attendanceSchema = new Schema({
     Check_out : {
         time: {
             type: Date,
+            default: null,
             timezone: "Asia/Ho_Chi_Minh"
           }    
     },
