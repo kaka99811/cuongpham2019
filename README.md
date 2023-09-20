@@ -11,3 +11,15 @@ Dá
 Da
 Sd
 nice oke bro
+
+Ád
+Á
+
+Á
+Da
+S
+Da
+Sd
+A
+Ds
+Ad
