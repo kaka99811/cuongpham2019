@@ -9,6 +9,25 @@ A
 S
 Dá
 Da
+Ád
+A
+Sd
+A
+Sd
+
+Á
+D
+Á
+D
+A
+Sd
+
+Ádasd
+
+Ád
+A
+Sd
+
 Sd
 nice oke bro
 
