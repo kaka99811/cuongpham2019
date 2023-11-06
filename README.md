@@ -38,6 +38,17 @@ nice oke bro
 Da
 S
 Da
+Qư
+E
+Qư
+E
+Qư
+E
+
+
+Qưe
+
+Qe
 Sd
 A
 Ds
