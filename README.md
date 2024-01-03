@@ -27,6 +27,17 @@ Sd
 Ád
 A
 Sd
+Á
+D
+Á
+D
+Á
+D
+Á
+D
+A
+Sd
+Sa
 
 Sd
 nice oke bro
